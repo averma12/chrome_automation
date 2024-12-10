@@ -1,4 +1,5 @@
 from selenium import webdriver
+import platform
 import os
 import argparse
 from selenium.webdriver.chrome.service import Service
@@ -6,17 +7,27 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-def connect_to_chrome(profile_directory=None):
+def get_default_profile_path():
+    """Get the default Chrome profile path based on OS"""
+    if platform.system() == "Windows":
+        return os.path.join(os.environ['LOCALAPPDATA'], 'Google', 'Chrome', 'User Data')
+    elif platform.system() == "Darwin":  # MacOS
+        return os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'Google', 'Chrome')
+    else:  # Linux
+        return os.path.join(os.path.expanduser('~'), '.config', 'google-chrome')
+
+def connect_to_chrome(profile_dir=None):
     """
-    Connect to Chrome with optional profile directory
+    Connect to existing Chrome instance with optional profile
     Args:
-        profile_directory (str): Path to Chrome profile directory (optional)
+        profile_dir (str): Path to Chrome profile directory (optional)
     """
     chrome_options = Options()
     chrome_options.add_experimental_option("debuggerAddress", "localhost:9222")
     
-    if profile_directory:
-        chrome_options.add_argument(f"user-data-dir={profile_directory}")
+    # Add profile directory if specified
+    if profile_dir:
+        chrome_options.add_argument(f"user-data-dir={profile_dir}")
     
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
