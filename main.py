@@ -1,5 +1,6 @@
 from selenium import webdriver
 import os
+import argparse
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
@@ -37,17 +38,40 @@ def list_tabs(driver):
         print(f"Tab {i}: {driver.current_url}")
     return driver.window_handles
 
+def create_new_tab(driver, url):
+    """Create new tab and navigate to URL"""
+    # Get current handles
+    original_handles = driver.window_handles
+    
+    # Create new blank tab using Selenium's built-in method
+    driver.switch_to.new_window('tab')
+    
+    # Get new handle
+    new_handle = [handle for handle in driver.window_handles if handle not in original_handles][0]
+    
+    # Switch to new tab
+    driver.switch_to.window(new_handle)
+    
+    # Navigate to URL
+    driver.get(url)
+    print(f"Navigated to: {url}")
+
 if __name__ == "__main__":
     try:
         # You can specify your profile directory here
         profile_dir = f"{os.path.expanduser('~')}/Library/Application Support/Google/Chrome"
         
-        # Connect to Chrome
-        driver = connect_to_chrome(profile_dir)
-        print("Connected to Chrome successfully!")
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--profile_dir", type=str, default=profile_dir, help="Path to Chrome profile directory")
+        parser.add_argument("--url", type=str, default="https://www.linkedin.com/in/vermaonline/", help="URL to navigate to")
+        args = parser.parse_args()
         
-        # Open a new tab with Google
-        open_new_tab(driver, "https://www.google.com")
+        # Connect to Chrome
+        driver = connect_to_chrome(args.profile_dir)
+        print("Connected to Chrome successfully!")
+
+        # Create a new tab
+        create_new_tab(driver, args.url)
         time.sleep(2)  # Wait for tab to load
         
         # List all tabs
